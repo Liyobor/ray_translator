@@ -14,51 +14,112 @@ class HomeLogic extends GetxController {
 
 
 
-
+  var blockText = "".obs;
 
   @override
   void onInit() {
     super.onInit();
 
 
-    Timer.periodic(const Duration(seconds: 8), (timer) async {
+    Timer.periodic(const Duration(seconds: 7), (timer) async {
       if (kDebugMode) {
         print("tick");
       }
-      controller.startImageStream((image){
-
-        controller.stopImageStream();
-        _scanText(image);
-      });
-
+      detectText();
 
 
     });
   }
 
-  Future<void> printResult(RecognizedText text) async {
+  @override
+  void dispose() {
+    super.dispose();
+    controller.stopImageStream();
+  }
+
+  void detectText(){
+    var c = 0;
+    controller.setFocusMode(FocusMode.auto);
+    controller.startImageStream((image) {
+      c++;
+      if(c==5){
+        controller.stopImageStream();
+        _scanText(image);
+      }
+    });
+  }
+
+  final List<String> languageList = ["zh","en"];
+
+  Future<String> getResult(TextRecognizer recognizer,RecognizedText text) async {
+    String lineString = "";
     for (TextBlock block in text.blocks) {
       final Rect rect = block.boundingBox;
       final List<Point<int>> cornerPoints = block.cornerPoints;
       final String text = block.text;
+
+
+
       final List<String> languages = block.recognizedLanguages;
 
       for (TextLine line in block.lines) {
+
+
+
+
+
         if (kDebugMode) {
-          print("line = ${line.text}");
+          print("recognizedLanguages = ${line.recognizedLanguages}");
+          print(languageList.contains(line.recognizedLanguages[0]));
+          print(recognizer.script);
         }
-        for (TextElement element in line.elements) {
-          if (kDebugMode) {
-            print("element = ${element.text}");
-          }
+
+
+        switch(recognizer.script){
+          case TextRecognitionScript.chinese:
+            if(line.recognizedLanguages[0]!="zh"){
+              continue;
+            }
+            break;
+          case TextRecognitionScript.latin:
+            if(line.recognizedLanguages[0]!="en"){
+              continue;
+            }
+            break;
+          case TextRecognitionScript.devanagiri:
+            // TODO: Handle this case.
+            break;
+          case TextRecognitionScript.japanese:
+            // TODO: Handle this case.
+            break;
+          case TextRecognitionScript.korean:
+            // TODO: Handle this case.
+            break;
         }
+
+
+        if(lineString.isEmpty){
+          lineString = line.text;
+        }else{
+          lineString+="\n${line.text}";
+        }
+        // for (TextElement element in line.elements) {
+        //   if (kDebugMode) {
+        //     print("element = ${element.text}");
+        //   }
+        // }
       }
     }
+    return lineString;
   }
 
   void _scanText(CameraImage availableImage) async {
 
-    final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
+    final latinRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
+    final chineseRecognizer = TextRecognizer(script: TextRecognitionScript.chinese);
+    // final japaneseRecognizer = TextRecognizer(script: TextRecognitionScript.japanese);
+    // final koreanRecognizer = TextRecognizer(script: TextRecognitionScript.korean);
+    final recognizers = [latinRecognizer,chineseRecognizer];
 
 
     final WriteBuffer allBytes = WriteBuffer();
@@ -68,9 +129,15 @@ class HomeLogic extends GetxController {
     final bytes = allBytes.done().buffer.asUint8List();
 
     InputImage inputImage = InputImage.fromBytes(bytes: bytes, inputImageData: availableImage.toInputImageData());
-    final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
-    printResult(recognizedText);
-    textRecognizer.close();
+
+    blockText.value = "";
+    String temp = "";
+    for(var recognizer in recognizers){
+      final RecognizedText recognizedText = await recognizer.processImage(inputImage);
+      getResult(recognizer,recognizedText).then((value) => temp+=value).whenComplete(() => blockText.value = temp);
+      recognizer.close();
+    }
+
 
   }
 

@@ -20,7 +20,19 @@ class HomePage extends StatelessWidget {
         },
         child: Stack(
             children: [
-              Camera()
+              Camera(),
+              Center(
+                child: Obx((){
+                  return Text(logic.blockText.value);
+                }),
+              ),
+              // Align(
+              //   alignment: Alignment.bottomCenter,
+              //   child: TextButton(
+              //     onPressed: () {
+              //     logic.detectText();},
+              //     child: const Text("辨識文字",textScaleFactor: 1.15),),
+              // )
             ]),
       ),
     );
