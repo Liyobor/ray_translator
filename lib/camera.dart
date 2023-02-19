@@ -21,7 +21,10 @@ class _CameraAppState extends State<Camera> {
   @override
   void initState() {
     super.initState();
-    logic.controller = CameraController(cameras[0], ResolutionPreset.max);
+
+
+
+    logic.controller = CameraController(cameras[0], ResolutionPreset.high,enableAudio: false);
     logic.controller.initialize().then((_) {
 
       if (!mounted) {
