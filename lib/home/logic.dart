@@ -51,11 +51,8 @@ class HomeLogic extends GetxController {
     rectList.clear();
   }
 
-  void detectText(){
-
-
+  void setMobileSize(){
     if(navigatorKey.currentContext!=null && mobileHeight == 0.0){
-
       if (kDebugMode) {
         print("get screen width and height");
         print("screen width = ${MediaQuery.of(navigatorKey.currentContext!).size.width}");
@@ -65,6 +62,14 @@ class HomeLogic extends GetxController {
       mobileWidth = MediaQuery.of(navigatorKey.currentContext!).size.width ;
       mobileHeight = MediaQuery.of(navigatorKey.currentContext!).size.height;
     }
+  }
+
+  void detectText(){
+
+
+    setMobileSize();
+
+
 
 
     var c = 0;

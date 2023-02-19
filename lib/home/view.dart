@@ -27,8 +27,8 @@ class HomePage extends StatelessWidget {
                   print("globalPosition dx = ${details.globalPosition.dx}");
                   print("globalPosition dy = ${details.globalPosition.dy}");
                 }
-
-                // logic.controller.setFocusPoint(Offset(dx, dy));
+                logic.setMobileSize();
+                logic.controller.setFocusPoint(Offset(details.globalPosition.dx/logic.mobileWidth, details.globalPosition.dy/logic.mobileHeight));
               },
               child: Obx(() {
                 return Stack(children: [
@@ -40,7 +40,9 @@ class HomePage extends StatelessWidget {
                           opacity: 0.4,
                           child: Container(
                               color: Colors.green,
-                              child: Text(logic.textList[i].text)),
+                              child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(logic.textList[i].text,style: const TextStyle(fontSize: 500),))),
                         )),
                   Align(
                     alignment: Alignment.bottomCenter,
