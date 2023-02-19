@@ -21,16 +21,15 @@ class _CameraAppState extends State<Camera> {
   @override
   void initState() {
     super.initState();
-
-
-
     logic.controller = CameraController(cameras[0], ResolutionPreset.high,enableAudio: false);
     logic.controller.initialize().then((_) {
-
       if (!mounted) {
         return;
       }
       setState(() {});
+
+
+      logic.detectText();
     }).catchError((Object e) {
       if (e is CameraException) {
         switch (e.code) {
@@ -43,6 +42,7 @@ class _CameraAppState extends State<Camera> {
         }
       }
     });
+
   }
 
 
@@ -53,7 +53,10 @@ class _CameraAppState extends State<Camera> {
       return Container();
     }
     return MaterialApp(
-      home: CameraPreview(logic.controller),
+      home: CameraPreview(
+          logic.controller,
+        // child: Text("CameraPreview"),
+      ),
     );
   }
 }

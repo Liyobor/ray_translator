@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:open_ai_translator/camera.dart';
 
+import '../camera.dart';
 import 'logic.dart';
 
 class HomePage extends StatelessWidget {
@@ -37,29 +37,29 @@ class HomePage extends StatelessWidget {
                     Positioned.fromRect(
                         rect: logic.rectList[i],
                         child: Opacity(
-                          opacity: 0.4,
+                          opacity: 0.7,
                           child: Container(
                               color: Colors.green,
                               child: FittedBox(
                                   fit: BoxFit.scaleDown,
-                                  child: Text(logic.textList[i].text,style: const TextStyle(fontSize: 500),))),
+                                  child: Text(logic.textList[i],style: const TextStyle(fontSize: 500),))),
                         )),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Container(
-                      color: Colors.blueAccent,
-                      child: TextButton(
-                        onPressed: () {
-                          logic.detectText();
-                        },
-                        child: const Text(
-                          "辨識文字",
-                          textScaleFactor: 1.15,
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  )
+                  // Align(
+                  //   alignment: Alignment.bottomCenter,
+                  //   child: Container(
+                  //     color: Colors.blueAccent,
+                  //     child: TextButton(
+                  //       onPressed: () {
+                  //         logic.detectText();
+                  //       },
+                  //       child: const Text(
+                  //         "辨識文字",
+                  //         textScaleFactor: 1.15,
+                  //         style: TextStyle(color: Colors.white),
+                  //       ),
+                  //     ),
+                  //   ),
+                  // )
                 ]);
               }),
             ),
