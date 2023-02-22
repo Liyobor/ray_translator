@@ -1,6 +1,6 @@
 # open_ai_translator
 
-A new Flutter project that use open ai api to translate.
+A new Flutter project that use ai api to translate.
 
 ## Getting Started
 
