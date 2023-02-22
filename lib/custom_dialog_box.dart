@@ -1,6 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
@@ -28,8 +29,22 @@ class _CustomDialogBoxState extends State<CustomDialogBox> {
 
 
   @override
-  Widget build(BuildContext context) {
+  void deactivate() {
+    super.deactivate();
+  }
 
+  @override
+  void dispose() {
+    super.dispose();
+    if (kDebugMode) {
+      print("CustomDialogBox dispose");
+    }
+  }
+  @override
+  Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp, // 只允許垂直方向
+    ]);
     return Dialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(padding),

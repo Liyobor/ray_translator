@@ -1,6 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:ray_translator/home/view.dart';
 
@@ -18,6 +19,10 @@ Future<void> main() async {
   if (kDebugMode) {
     print("camera count = ${cameras.length}");
   }
+
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp, // 只允許垂直方向
+  ]);
   runApp(const MyApp());
 }
 
@@ -35,8 +40,8 @@ class MyApp extends StatelessWidget {
       initialRoute: "/HomePage",
       // home: HomePage(),
       routes: {
-        "/HomePage":(context) => HomePage(),
-        "/CameraPage":(context) => TranslationCameraPage(),
+        "/HomePage":(context) => const HomePage(),
+        "/CameraPage":(context) => const TranslationCameraPage(),
       },
       builder: EasyLoading.init(),
     );

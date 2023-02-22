@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:google_mlkit_translation/google_mlkit_translation.dart';
+import 'package:native_device_orientation/native_device_orientation.dart';
 
 import '../home/logic.dart';
 late List<CameraDescription> cameras;
@@ -34,7 +36,7 @@ class TranslationCameraLogic extends GetxController {
   var textList = [].obs;
   var rectList = [];
   dynamic height,width;
-  var orientation = Orientation.portrait;
+  var orientation = NativeDeviceOrientation.portraitUp;
   var mobileWidth = 0.0,mobileHeight = 0.0;
 
   var isTerminate = false;
@@ -43,16 +45,20 @@ class TranslationCameraLogic extends GetxController {
   late OnDeviceTranslator onDeviceTranslator;
 
 
-
-  @override
-  void dispose() {
-    super.dispose();
-    controller.stopImageStream();
+  void stop(){
+    controller.stopImageStream().then((value) => controller.dispose());
     recognizer.close();
     onDeviceTranslator.close();
   }
 
-  void orientationChange(Orientation newOrientation){
+
+
+  Future<void> orientationChange() async {
+    final newOrientation = await NativeDeviceOrientationCommunicator().orientation(useSensor: false);
+
+    if (kDebugMode) {
+      print("newOrientation = $newOrientation");
+    }
     mobileWidth = 0.0;
     mobileHeight = 0.0;
     orientation = newOrientation;
@@ -61,15 +67,18 @@ class TranslationCameraLogic extends GetxController {
 
   void setMobileSize(){
     if(navigatorKey.currentContext!=null){
-      orientation = MediaQuery.of(navigatorKey.currentContext!).orientation;
       mobileWidth = MediaQuery.of(navigatorKey.currentContext!).size.width ;
       mobileHeight = MediaQuery.of(navigatorKey.currentContext!).size.height;
     }
   }
 
-  @override
-  void onInit() {
-    super.onInit();
+
+  void init(){
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp, // 允許垂直方向
+      DeviceOrientation.landscapeLeft, // 允許左橫向
+      DeviceOrientation.landscapeRight, // 允許右橫向
+    ]);
     recognizer = chooseRecognizer();
     onDeviceTranslator = chooseTranslator();
   }
@@ -86,7 +95,6 @@ class TranslationCameraLogic extends GetxController {
         status.value = Status.running;
         _scanText(image,DetectType.block);
 
-
     });
   }
 
@@ -96,7 +104,7 @@ class TranslationCameraLogic extends GetxController {
     for (TextBlock block in text.blocks) {
 
       switch(orientation){
-        case Orientation.portrait:
+        case NativeDeviceOrientation.portraitUp:
           final blockRect = block.boundingBox;
           final scaleOfX = mobileWidth/height;
           final scaleOfY = mobileHeight/width;
@@ -104,19 +112,44 @@ class TranslationCameraLogic extends GetxController {
           final scaledRect = Rect.fromLTRB(blockRect.left*scaleOfX, blockRect.top*scaleOfY,blockRect.right*scaleOfX, blockRect.bottom*scaleOfY);
           rectList.add(scaledRect);
           blockList.add(block);
-
           break;
-        case Orientation.landscape:
+        case NativeDeviceOrientation.portraitDown:
+          final blockRect = block.boundingBox;
+          final scaleOfX = mobileWidth/height;
+          final scaleOfY = mobileHeight/width;
+
+          final scaledRect = Rect.fromLTRB(blockRect.left*scaleOfX, blockRect.top*scaleOfY,blockRect.right*scaleOfX, blockRect.bottom*scaleOfY);
+          rectList.add(scaledRect);
+          blockList.add(block);
+          break;
+        case NativeDeviceOrientation.landscapeLeft:
+          final blockRect = block.boundingBox;
+          final bottom = (height-blockRect.left)/height*mobileHeight;
+          final top = (height-blockRect.right)/height*mobileHeight;
+          final left = (blockRect.top)/width*mobileWidth;
+          final right = (blockRect.bottom)/width*mobileWidth;
+          final scaledRect = Rect.fromLTRB(left,top,right,bottom);
+          rectList.add(scaledRect);
+          blockList.add(block);
+          break;
+        case NativeDeviceOrientation.landscapeRight:
           final blockRect = block.boundingBox;
           final top = blockRect.left/height*mobileHeight;
           final bottom = blockRect.right/height*mobileHeight;
           final right = (width-blockRect.top)/width*mobileWidth;
           final left = (width-blockRect.bottom)/width*mobileWidth;
           final scaledRect = Rect.fromLTRB(left,top,right,bottom);
-
           rectList.add(scaledRect);
           blockList.add(block);
+          break;
+        case NativeDeviceOrientation.unknown:
+          final blockRect = block.boundingBox;
+          final scaleOfX = mobileWidth/height;
+          final scaleOfY = mobileHeight/width;
 
+          final scaledRect = Rect.fromLTRB(blockRect.left*scaleOfX, blockRect.top*scaleOfY,blockRect.right*scaleOfX, blockRect.bottom*scaleOfY);
+          rectList.add(scaledRect);
+          blockList.add(block);
           break;
       }
 
@@ -169,7 +202,7 @@ class TranslationCameraLogic extends GetxController {
         await _refreshTextByBlock();
       }
     });
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(milliseconds: 3500));
     status.value = Status.available;
 
   }

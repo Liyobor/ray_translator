@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:camera/camera.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -21,18 +22,26 @@ class Camera extends StatefulWidget {
 }
 
 class _CameraAppState extends State<Camera> {
-  final logic = Get.put(TranslationCameraLogic());
+
+
+  @override
+  void dispose() {
+    final logic = Get.put(TranslationCameraLogic());
+    logic.stop();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
+    final logic = Get.put(TranslationCameraLogic());
+    logic.init();
     logic.controller = CameraController(cameras[0], ResolutionPreset.high,enableAudio: false);
     logic.controller.initialize().then((_) {
       if (!mounted) {
         return;
       }
       setState(() {});
-
-
 
       logic.detectText();
 
@@ -55,6 +64,7 @@ class _CameraAppState extends State<Camera> {
 
   @override
   Widget build(BuildContext context) {
+    final logic = Get.put(TranslationCameraLogic());
     if (!logic.controller.value.isInitialized) {
       return Container();
     }

@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 
 import '../custom_dialog_box.dart';
+import '../translation_camera_page/logic.dart';
 
 enum Languages {
   english("英文"),
@@ -21,6 +24,23 @@ class HomeLogic extends GetxController {
 
   var isDialogShowing = false;
 
+
+
+  @override
+  void onInit() {
+    if (kDebugMode) {
+      print("HomeLogic onInit");
+    }
+    super.onInit();
+  }
+
+  @override
+  void onClose(){
+    if (kDebugMode) {
+      print("HomeLogic onClosed");
+    }
+    super.onClose();
+  }
   showCustomDialog(BuildContext context,String text,Function() acceptActions){
     return showDialog(context: context, builder: (BuildContext context){
       isDialogShowing = true;
@@ -45,5 +65,10 @@ class HomeLogic extends GetxController {
         final bool response = await modelManager.isModelDownloaded(TranslateLanguage.korean.bcpCode);
         return response;
     }
+  }
+
+  void enterCameraPage() {
+    final translationCameraLogic = Get.put(TranslationCameraLogic());
+    translationCameraLogic.init();
   }
 }
