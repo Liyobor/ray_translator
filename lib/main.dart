@@ -1,8 +1,13 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'home/logic.dart';
-import 'home/view.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:ray_translator/home/view.dart';
+
+
+import 'translation_camera_page/logic.dart';
+import 'translation_camera_page/view.dart';
+
 
 
 
@@ -24,10 +29,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      navigatorKey: HomeLogic.navigatorKey,
+      navigatorKey: TranslationCameraLogic.navigatorKey,
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.light,
-      home: HomePage(),
+      initialRoute: "/HomePage",
+      // home: HomePage(),
+      routes: {
+        "/HomePage":(context) => HomePage(),
+        "/CameraPage":(context) => TranslationCameraPage(),
+      },
+      builder: EasyLoading.init(),
     );
   }
 }

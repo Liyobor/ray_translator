@@ -1,23 +1,27 @@
+import 'dart:async';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'home/logic.dart';
+import 'translation_camera_page/logic.dart';
+
 
 
 
 /// CameraApp is the Main Application.
 class Camera extends StatefulWidget {
   /// Default Constructor
-  const Camera({Key? key}) : super(key: key);
+  const Camera({Key? key,this.child}) : super(key: key);
+
+  final Widget? child;
 
   @override
   State<Camera> createState() => _CameraAppState();
 }
 
 class _CameraAppState extends State<Camera> {
-  final logic = Get.put(HomeLogic());
-
+  final logic = Get.put(TranslationCameraLogic());
   @override
   void initState() {
     super.initState();
@@ -29,7 +33,9 @@ class _CameraAppState extends State<Camera> {
       setState(() {});
 
 
+
       logic.detectText();
+
     }).catchError((Object e) {
       if (e is CameraException) {
         switch (e.code) {
@@ -54,8 +60,9 @@ class _CameraAppState extends State<Camera> {
     }
     return MaterialApp(
       home: CameraPreview(
-          logic.controller,
-        // child: Text("CameraPreview"),
+
+        logic.controller,
+        child: widget.child,
       ),
     );
   }

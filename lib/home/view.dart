@@ -1,8 +1,9 @@
-import 'package:flutter/foundation.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_ml_kit/google_ml_kit.dart';
 
-import '../camera.dart';
+import '../translation_camera_page/view.dart';
 import 'logic.dart';
 
 class HomePage extends StatelessWidget {
@@ -12,60 +13,39 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OrientationBuilder(
-      builder:(BuildContext context,Orientation orientation) {
-        logic.orientationChange(orientation);
-        return Scaffold(
-          body: WillPopScope(
-            onWillPop: () async {
-              await logic.controller.dispose();
-              return true;
-            },
-            child: GestureDetector(
-              onTapDown: (details){
-                if (kDebugMode) {
-                  print("globalPosition dx = ${details.globalPosition.dx}");
-                  print("globalPosition dy = ${details.globalPosition.dy}");
-                }
-                logic.setMobileSize();
-                logic.controller.setFocusPoint(Offset(details.globalPosition.dx/logic.mobileWidth, details.globalPosition.dy/logic.mobileHeight));
-              },
-              child: Obx(() {
-                return Stack(children: [
-                  const Camera(),
-                  for (var i = 0; i < logic.textList.length; i++)
-                    Positioned.fromRect(
-                        rect: logic.rectList[i],
-                        child: Opacity(
-                          opacity: 0.7,
-                          child: Container(
-                              color: Colors.green,
-                              child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(logic.textList[i],style: const TextStyle(fontSize: 500),))),
-                        )),
-                  // Align(
-                  //   alignment: Alignment.bottomCenter,
-                  //   child: Container(
-                  //     color: Colors.blueAccent,
-                  //     child: TextButton(
-                  //       onPressed: () {
-                  //         logic.detectText();
-                  //       },
-                  //       child: const Text(
-                  //         "辨識文字",
-                  //         textScaleFactor: 1.15,
-                  //         style: TextStyle(color: Colors.white),
-                  //       ),
-                  //     ),
-                  //   ),
-                  // )
-                ]);
-              }),
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 120,
+              child: TextButton(
+                  style: ButtonStyle(
+                      padding: MaterialStateProperty.all<EdgeInsets>(const EdgeInsets.all(15)),
+                      foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                      backgroundColor: const MaterialStatePropertyAll<Color>(Color(0xff5DC7AA)),
+                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25.0),
+                              side: const BorderSide(color: Color(0xff5DC7AA))
+                          )
+                      )
+                  ),
+                  onPressed: (){
+                    // Navigator.push(context, MaterialPageRoute(builder: (context) => TranslationCameraPage()));
+                    logic.showCustomDialog(context,"要翻譯的語言",() async {
+
+                      Navigator.pushNamed(context, "/CameraPage");
+                    });
+                  },
+                  child: const AutoSizeText("相機動態翻譯",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w400,),)),
             ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 }
