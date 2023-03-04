@@ -47,6 +47,7 @@ dependencies:
   auto_size_text: ^3.0.0
   flutter_easyloading: ^3.0.5
   native_device_orientation: ^1.1.4
+  http: ^0.13.5
 
 dev_dependencies:
   flutter_test:

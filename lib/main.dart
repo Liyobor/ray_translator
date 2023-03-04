@@ -23,6 +23,7 @@ Future<void> main() async {
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp, // 只允許垂直方向
   ]);
+
   runApp(const MyApp());
 }
 

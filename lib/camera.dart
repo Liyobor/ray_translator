@@ -43,6 +43,8 @@ class _CameraAppState extends State<Camera> {
       }
       setState(() {});
 
+      // logic.startImageStream();
+
       logic.detectText();
 
     }).catchError((Object e) {
@@ -70,7 +72,6 @@ class _CameraAppState extends State<Camera> {
     }
     return MaterialApp(
       home: CameraPreview(
-
         logic.controller,
         child: widget.child,
       ),

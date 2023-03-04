@@ -2,30 +2,25 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
-import 'package:google_ml_kit/google_ml_kit.dart';
 
 import 'home/logic.dart';
 
-class CustomDialogBox extends StatefulWidget {
+class DropDownDialogBox extends StatefulWidget {
   final String text,asset;
   final Function onAccept;
 
-  const CustomDialogBox({Key? key, required this.text,this.asset = "assets/doge2.png",required this.onAccept}) : super(key: key);
+  const DropDownDialogBox({Key? key, required this.text,this.asset = "assets/doge2.png",required this.onAccept}) : super(key: key);
 
   @override
-  State<CustomDialogBox> createState() => _CustomDialogBoxState();
+  State<DropDownDialogBox> createState() => _DropDownBoxState();
 }
 
-class _CustomDialogBoxState extends State<CustomDialogBox> {
+class _DropDownBoxState extends State<DropDownDialogBox> {
   static const double avatarRadius =45;
   static const double padding =20;
   static const mainTiffanyGreen = Color(0xff5DC7AA);
   static const typeTextColor = Color(0xff595757);
-
-
-
 
 
   @override
@@ -102,50 +97,6 @@ class _CustomDialogBoxState extends State<CustomDialogBox> {
                           setState(() {
                             logic.selectedLanguage = newValue!;
                           });
-                          final modelManager = OnDeviceTranslatorModelManager();
-                          EasyLoading.dismiss();
-                          EasyLoading.show(status: '確認有無下載模型...');
-                          await logic.checkIfModelDownloaded(modelManager).then((value) async {
-                            if(!value){
-                              EasyLoading.dismiss();
-                              EasyLoading.show(status: '開始下載模型...');
-                              switch(logic.selectedLanguage){
-                                case Languages.english:
-                                  await modelManager.downloadModel(TranslateLanguage.english.bcpCode).whenComplete((){
-                                    if (kDebugMode) {
-                                      print("download competlete");
-                                    }
-                                    EasyLoading.dismiss();
-
-                                  });
-                                  break;
-                                case Languages.japanese:
-                                  await modelManager.downloadModel(TranslateLanguage.japanese.bcpCode).whenComplete((){
-                                    if (kDebugMode) {
-                                      print("download competlete");
-                                    }
-                                    EasyLoading.dismiss();
-
-                                  });
-                                  break;
-                                case Languages.korean:
-                                  await modelManager.downloadModel(TranslateLanguage.korean.bcpCode).whenComplete((){
-                                    if (kDebugMode) {
-                                      print("download competlete");
-                                    }
-                                    EasyLoading.dismiss();
-
-                                  });
-                                  break;
-                              }
-                            }
-                            EasyLoading.dismiss();
-
-                          });
-
-
-
-
                         },),
                     ],),
                 ],

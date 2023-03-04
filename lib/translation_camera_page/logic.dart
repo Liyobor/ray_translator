@@ -1,13 +1,17 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:google_mlkit_translation/google_mlkit_translation.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
+import 'package:ray_translator/chatGpt_translator.dart';
+
 
 import '../home/logic.dart';
 late List<CameraDescription> cameras;
@@ -28,7 +32,9 @@ class TranslationCameraLogic extends GetxController {
   late CameraController controller;
 
 
-  var status = Status.available.obs;
+  
+
+  var status = Status.running.obs;
 
   // var blockText = "".obs;
   var lineList = <TextLine>[];
@@ -52,7 +58,6 @@ class TranslationCameraLogic extends GetxController {
   }
 
 
-
   Future<void> orientationChange() async {
     final newOrientation = await NativeDeviceOrientationCommunicator().orientation(useSensor: false);
 
@@ -74,31 +79,32 @@ class TranslationCameraLogic extends GetxController {
 
 
   void init(){
-    SystemChrome.setPreferredOrientations([
+    Future.delayed(const Duration(seconds: 2)).then((value) => SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp, // 允許垂直方向
       DeviceOrientation.landscapeLeft, // 允許左橫向
       DeviceOrientation.landscapeRight, // 允許右橫向
-    ]);
+    ]));
     recognizer = chooseRecognizer();
     onDeviceTranslator = chooseTranslator();
   }
 
   void detectText(){
-
-    controller.setFocusMode(FocusMode.auto);
+    controller.setFocusMode(FocusMode.locked);
     controller.startImageStream((image){
-
       if(status.value==Status.running) return;
         height = image.height;
         width = image.width;
         setMobileSize();
         status.value = Status.running;
+        EasyLoading.show(status:"翻譯中...");
         _scanText(image,DetectType.block);
-
     });
   }
 
-  Future<void> getResult(TextRecognizer recognizer,RecognizedText text) async {
+
+
+
+  Future<void> getResult(RecognizedText text) async {
 
     clearTemp();
     for (TextBlock block in text.blocks) {
@@ -158,7 +164,7 @@ class TranslationCameraLogic extends GetxController {
   OnDeviceTranslator chooseTranslator(){
     final homeLogic = Get.put(HomeLogic());
     switch(homeLogic.selectedLanguage){
-      case Languages.english:
+      case Languages.latin:
         return OnDeviceTranslator(sourceLanguage: TranslateLanguage.english, targetLanguage: TranslateLanguage.chinese);
       case Languages.japanese:
         return OnDeviceTranslator(sourceLanguage: TranslateLanguage.japanese, targetLanguage: TranslateLanguage.chinese);
@@ -173,7 +179,7 @@ class TranslationCameraLogic extends GetxController {
       case Languages.korean:
         final recognizer = TextRecognizer(script: TextRecognitionScript.korean);
         return recognizer;
-      case Languages.english:
+      case Languages.latin:
         final recognizer = TextRecognizer(script: TextRecognitionScript.latin);
         return recognizer;
       case Languages.japanese:
@@ -194,29 +200,67 @@ class TranslationCameraLogic extends GetxController {
 
     InputImage inputImage = InputImage.fromBytes(bytes: bytes, inputImageData: availableImage.toInputImageData());
 
-    final RecognizedText recognizedText = await recognizer.processImage(inputImage);
-    await getResult(recognizer, recognizedText).then((value) async {
-      if(type == DetectType.line) {
-        await _refreshTextByLine();
-      } else if(type == DetectType.block) {
-        await _refreshTextByBlock();
-      }
-    });
-    await Future.delayed(const Duration(milliseconds: 3500));
-    status.value = Status.available;
-
+    try{
+      final RecognizedText recognizedText = await recognizer.processImage(inputImage);
+      await getResult(recognizedText).then((value) async {
+        if(type == DetectType.line) {
+          await _refreshTextByLine();
+        } else if(type == DetectType.block) {
+          // await _refreshTextByBlock();
+          await _refreshTextByBlockUsingChatGpt();
+        }
+      });
+    }catch (e){
+      e.printError();
+    }
+    EasyLoading.dismiss();
+    // await Future.delayed(const Duration(milliseconds: 3500));
+    // status.value = Status.available;
   }
+
+  Future<void> _refreshTextByBlockUsingChatGpt () async {
+    final translator = ChatGptTranslator();
+
+    var tempStr = "";
+    // final temp = [];
+    // final reversedList = blockList.reversed.toList();
+    for(var i=0;i<blockList.length;i++){
+      tempStr+="*/*${blockList[i].text}";
+    }
+    // tempStr+=temp.toString();
+    if (kDebugMode) {
+      print("untranslated text = ${tempStr.trim()}");
+    }
+
+
+
+    await translator.translate(tempStr).then((value){
+      if (kDebugMode) {
+        print("translated text = $value");
+      }
+      final list = value.split("*/*");
+      list.removeAt(0);
+      // final rList = list.reversed.toList();
+      clearText();
+      textList.addAll(list);
+    });
+  }
+
 
   Future<void> _refreshTextByBlock () async {
     var temp = [];
 
     for(var i=0;i<blockList.length;i++){
+
       if(checkIfBlockHaveToTranslate(blockList[i])){
         temp.add(await onDeviceTranslator.translateText(blockList[i].text));
       }else{
         temp.add(blockList[i].text);
       }
     }
+
+
+
     clearText();
     textList.addAll(temp);
 
@@ -229,7 +273,7 @@ class TranslationCameraLogic extends GetxController {
 
     switch(homeLogic.selectedLanguage){
 
-      case Languages.english:
+      case Languages.latin:
         for(var lines in block.lines){
           if(lines.recognizedLanguages.contains("en")) return true;
         }
@@ -267,6 +311,8 @@ class TranslationCameraLogic extends GetxController {
     textList.addAll(temp);
 
   }
+
+
 
   void clearText(){
     textList.clear();

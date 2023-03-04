@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:ray_translator/instruction_dialog_box.dart';
 
-import '../custom_dialog_box.dart';
+import '../drop_down_dialog_box.dart';
 import '../translation_camera_page/logic.dart';
 
 enum Languages {
-  english("英文"),
+  latin("拉丁文"),
   japanese("日文"),
   korean("韓文");
 
@@ -19,8 +20,8 @@ enum Languages {
 
 class HomeLogic extends GetxController {
 
-  final List<Languages> languages = [Languages.english, Languages.japanese, Languages.korean];
-  Languages selectedLanguage = Languages.english;
+  final List<Languages> languages = [Languages.latin, Languages.japanese, Languages.korean];
+  Languages selectedLanguage = Languages.latin;
 
   var isDialogShowing = false;
 
@@ -41,10 +42,18 @@ class HomeLogic extends GetxController {
     }
     super.onClose();
   }
+
+  showInstructionDialog(BuildContext context,String text){
+    return showDialog(context: context, builder: (BuildContext context){
+      isDialogShowing = true;
+      return InstructionDialogBox(text: text,asset: "assets/doge1.png",);
+    }).then((value) => isDialogShowing = false);
+  }
+
   showCustomDialog(BuildContext context,String text,Function() acceptActions){
     return showDialog(context: context, builder: (BuildContext context){
       isDialogShowing = true;
-      return CustomDialogBox(
+      return DropDownDialogBox(
         text: text,
         onAccept: (){
           acceptActions();
@@ -55,7 +64,7 @@ class HomeLogic extends GetxController {
 
   Future<bool> checkIfModelDownloaded(OnDeviceTranslatorModelManager modelManager) async {
     switch(selectedLanguage){
-      case Languages.english:
+      case Languages.latin:
         final bool response = await modelManager.isModelDownloaded(TranslateLanguage.english.bcpCode);
         return response;
       case Languages.japanese:
